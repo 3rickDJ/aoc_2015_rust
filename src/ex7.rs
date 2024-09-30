@@ -5,9 +5,14 @@ use std::fs;
 use std::time::Instant;
 fn main() {
     let input = fs::read_to_string("input/7").unwrap();
-    let start = Instant::now();
     let mut circuit = Circuit::new(input);
-    println!("{}", circuit.get_value("a"));
+    let start = Instant::now();
+    let a_val = circuit.get_value("a");
+    println!("{}", a_val);
+    circuit.reset();
+    circuit.set("b", a_val);
+    let a_val = circuit.get_value("a");
+    println!("{}", a_val);
     println!("Elapsed time: {:.2?}", start.elapsed());
 }
 
@@ -20,11 +25,12 @@ impl Circuit {
     fn new(input: String) -> Self {
         let mut mp = HashMap::new();
 
+        let start = Instant::now();
         for line in input.lines() {
             let (operation, bind) = parse_line(line);
             mp.insert(bind, operation);
         }
-
+        println!("Elapsed pasing time: {:.2?}", start.elapsed());
         Circuit {
             instructions: mp,
             mem: HashMap::new(),
@@ -53,6 +59,10 @@ impl Circuit {
         self.mem.insert(key.to_string(), result);
         result
     }
+
+    fn reset(&mut self) { self.mem.clear() }
+
+    fn set(&mut self, key: &str, value: u16) { self.mem.insert(key.to_string(), value);}
 }
 
 #[derive(Debug, Clone)]
