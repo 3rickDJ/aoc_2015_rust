@@ -1,16 +1,15 @@
-use std::collections::HashMap;
-use std::fs;
-use std::hash::Hash;
-use std::io::{BufRead, BufReader};
-use regex::Regex;
-use once_cell::sync::Lazy;
+use std::collections::HashMap; use std::fs; use regex::Regex; use once_cell::sync::Lazy; use std::time::Instant;
 fn main() {
   let input = fs::read_to_string("input/7").unwrap();
+  let start = Instant::now();
   let circuit = Circuit::new(input);
+  println!("{}", circuit.get_value("t"));
+  println!("Elapsed time: {:.2?}", start.elapsed());
 }
 
 struct Circuit {
-  mp: HashMap<String, Operation>
+  instructions: HashMap<String, Operation>,
+  mem: HashMap<String, u16>
 }
 
 impl Circuit {
@@ -19,20 +18,21 @@ impl Circuit {
 
     for line in input.lines() {
       let (operation, bind) = parse_line(line);
-      println!("{:?} -> {}", operation, bind);
       mp.insert(bind, operation);
     }
 
     Circuit {
-      mp
+      instructions: mp,
+      mem: HashMap::new()
     }
   }
 
   fn get_value(&self, key: &str) -> u16 {
-    match key.parse::<u16>(){
+    println!("key: {}", key);
+    match key.parse::<u16>() {
       Ok(v) => v,
       Err(_) => {
-        let operation = self.mp.get(key).unwrap();
+        let operation = self.instructions.get(key).unwrap();
         match operation {
           Operation::Wire(wire) => self.get_value(wire),
           Operation::And(left, right) => self.get_value(left) & self.get_value(right),
@@ -69,8 +69,6 @@ fn parse_line(line: &str) -> (Operation, String) {
     static RE_NOT: Lazy<Regex> = Lazy::new( || {
       Regex::new(r"^(?<op>NOT) (?<right>\w+) -> (?<bind>\w+)$").unwrap()
     });
-
-    println!("{}", line);
 
     if let Some(caps) = RE_WIRE.captures(line){
       let op1 = caps["op1"].to_string();
