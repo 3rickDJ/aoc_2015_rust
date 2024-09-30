@@ -9,6 +9,7 @@ fn main() {
     let start = Instant::now();
     let a_val = circuit.get_value("a");
     println!("{}", a_val);
+    println!("Elapsed time: {:.2?}", start.elapsed());
     circuit.reset();
     circuit.set("b", a_val);
     let a_val = circuit.get_value("a");
@@ -76,44 +77,43 @@ enum Operation {
 }
 
 fn parse_line(line: &str) -> (Operation, String) {
-    static RE_WIRE: Lazy<Regex> =
-        Lazy::new(|| Regex::new(r"^(?<op1>\w+) -> (?<bind>\w+)$").unwrap());
-    static RE_BITWISE: Lazy<Regex> = Lazy::new(|| {
-        Regex::new(r"^(?<left>\w+) (?<op>AND|OR|LSHIFT|RSHIFT) (?<right>\w+) -> (?<bind>\w+)$")
-            .unwrap()
-    });
-    static RE_NOT: Lazy<Regex> =
-        Lazy::new(|| Regex::new(r"^(?<op>NOT) (?<right>\w+) -> (?<bind>\w+)$").unwrap());
-
-    if let Some(caps) = RE_WIRE.captures(line) {
-        let op1 = caps["op1"].to_string();
-        let bind = caps["bind"].to_string();
-        return (Operation::Wire(op1), bind);
-    } else if let Some(caps) = RE_BITWISE.captures(line) {
-        let left = caps["left"].to_string();
-        let op = caps["op"].to_string();
-        let right = caps["right"].to_string();
-        let bind = caps["bind"].to_string();
-        return match op.as_str() {
-            "AND" => (Operation::And(left, right), bind),
-            "OR" => (Operation::Or(left, right), bind),
-            "LSHIFT" => {
-                let right = right.parse::<u16>().unwrap();
-                (Operation::Lshift(left, right), bind)
-            }
-            "RSHIFT" => {
-                let right = right.parse::<u16>().unwrap();
-                (Operation::Rshift(left, right), bind)
-            }
-            _ => panic!("Sin match"),
-        };
-    } else if let Some(caps) = RE_NOT.captures(line) {
-        let right = caps["right"].to_string();
-        let bind = caps["bind"].to_string();
-        return (Operation::Not(right), bind);
-    } else {
-        panic!("Sin match")
-    }
+  let parts: Vec<&str> = line.split_whitespace().collect();
+  match parts.len() {
+      3 => {
+          // Handles operations like "123 -> x"
+          let bind = parts[2].to_string();
+          let op1 = parts[0].to_string();
+          (Operation::Wire(op1), bind)
+      }
+      4 => {
+          // Handles operations like "NOT x -> h"
+          let bind = parts[3].to_string();
+          let right = parts[1].to_string();
+          (Operation::Not(right), bind)
+      }
+      5 => {
+          // Handles operations like "x AND y -> d", "x OR y -> e", etc.
+          let left = parts[0].to_string();
+          let op = parts[1];
+          let right = parts[2].to_string();
+          let bind = parts[4].to_string();
+          
+          match op {
+              "AND" => (Operation::And(left, right), bind),
+              "OR" => (Operation::Or(left, right), bind),
+              "LSHIFT" => {
+                  let right_val = right.parse::<u16>().unwrap();
+                  (Operation::Lshift(left, right_val), bind)
+              }
+              "RSHIFT" => {
+                  let right_val = right.parse::<u16>().unwrap();
+                  (Operation::Rshift(left, right_val), bind)
+              }
+              _ => panic!("Unrecognized operation"),
+          }
+      }
+      _ => panic!("Invalid instruction format"),
+  }
 }
 
 #[cfg(test)]
