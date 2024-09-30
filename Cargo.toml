@@ -9,9 +9,9 @@ once_cell = "1.19.0"
 regex = "1.10.6"
 
 [[bin]]
-name="ex6"
-path="src/ex6.rs"
+name="2015ex6"
+path="src/2015/ex6.rs"
 
 [[bin]]
-name="ex7"
-path="src/ex7.rs"
+name="2015ex7"
+path="src/2015/ex7.rs"

@@ -42,7 +42,7 @@ impl Instruction {
 
 fn main() {
     let total_time = Instant::now();
-    let f = File::open("input/6").unwrap();
+    let f = File::open("input/2015/6").unwrap();
     let reader = BufReader::new(f);
     let mut grid: Vec<Vec<i128>> = vec![vec![0;1000]; 1000];
 

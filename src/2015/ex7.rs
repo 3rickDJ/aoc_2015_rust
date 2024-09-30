@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::time::Instant;
 fn main() {
-    let input = fs::read_to_string("input/7").unwrap();
+    let input = fs::read_to_string("input/2015/7").unwrap();
     let mut circuit = Circuit::new(input);
     let start = Instant::now();
     let a_val = circuit.get_value("a");
@@ -95,7 +95,7 @@ fn parse_line(line: &str) -> (Operation, String) {
           let op = parts[1];
           let right = parts[2].to_string();
           let bind = parts[4].to_string();
-          
+
           match op {
               "AND" => (Operation::And(left, right), bind),
               "OR" => (Operation::Or(left, right), bind),
