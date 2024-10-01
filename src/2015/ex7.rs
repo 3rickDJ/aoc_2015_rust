@@ -122,14 +122,14 @@ mod test {
     #[test]
     fn test_simple_circuit() {
         let input = indoc! {"
-      123 -> x
-      456 -> y
-      x AND y -> d
-      x OR y -> e
-      x LSHIFT 2 -> f
-      y RSHIFT 2 -> g
-      NOT x -> h
-      NOT y -> i"
+        123 -> x
+        456 -> y
+        x AND y -> d
+        x OR y -> e
+        x LSHIFT 2 -> f
+        y RSHIFT 2 -> g
+        NOT x -> h
+        NOT y -> i"
         }
         .to_string();
         let mut circuit = Circuit::new(input);
