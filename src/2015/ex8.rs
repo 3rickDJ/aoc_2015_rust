@@ -1,5 +1,4 @@
 use std::time::Instant;
-use indoc::indoc;
 fn main () {
   let _start = Instant::now();
   let contents = std::fs::read_to_string("input/2015/8").unwrap();
