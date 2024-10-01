@@ -1,9 +1,10 @@
 use std::time::Instant;
 fn main () {
-  let _start = Instant::now();
+  let start = Instant::now();
   let contents = std::fs::read_to_string("input/2015/8").unwrap();
-  let result = match_sticks::code_minus_mem_chars(&contents);
+  let result = match_sticks::code_minus_encoded_chars(&contents);
   println!("Result: {result:?}");
+  println!("Elapsed time: {:.3?}", start.elapsed());
 }
 
 mod match_sticks {
@@ -13,6 +14,16 @@ mod match_sticks {
     for line in input.lines(){
       let (mem, code) = self::count_line(line);
       counter += code - mem;
+    }
+    counter
+  }
+
+  pub fn code_minus_encoded_chars(input: &str) -> usize {
+    let mut counter: usize = 0;
+    for line in input.lines(){
+      let (_, code) = self::count_line(line);
+      let (_, encoded) = self::encode_line_len(line);
+      counter += encoded - code;
     }
     counter
   }
@@ -52,7 +63,7 @@ mod match_sticks {
           },
           '"' => {
           },
-          c => {
+          _ => {
             mem_count += 1;
           }
         }
@@ -62,6 +73,23 @@ mod match_sticks {
     (mem_count, code_count)
   }
 
+  // line_new_len(x) = 2 + len(x) + each(/) + each(") 
+  //"\x27" = 6
+  // 2 + 2 + 6 + 1 = 11
+  // "aaa\"aaa" = 10
+  // 2 + 2 + 10 + 1 + 1 =  16
+  pub fn encode_line_len(line: &str) -> (usize, usize) {
+    let mut after = 2 + line.len();
+    for c in line.chars(){
+      match c {
+        '\\' => after+=1,
+        '"' => after+=1,
+        _ => {},
+      }
+    }
+
+    (line.len(), after)
+  }
 }
 
 #[cfg(test)]
@@ -99,5 +127,18 @@ mod test {
     // let matchsticks = match_sticks::(santas_list);
     let result = match_sticks::code_minus_mem_chars(santas_list);
     assert_eq!(result, 12);
+  }
+
+  #[test]
+  fn test_code_minus_encoded_characters() {
+    let santas_list = indoc! {r#"
+    ""
+    "abc"
+    "aaa\"aaa"
+    "\x27""#
+    };
+    // let matchsticks = match_sticks::(santas_list);
+    let result = match_sticks::code_minus_encoded_chars(santas_list);
+    assert_eq!(result, 19);
   }
 }
