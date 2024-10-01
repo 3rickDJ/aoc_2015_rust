@@ -17,5 +17,9 @@ name="2015ex7"
 path="src/2015/ex7.rs"
 
 [[bin]]
+name="2015ex8"
+path="src/2015/ex8.rs"
+
+[[bin]]
 name="2022ex5"
 path="src/2022/ex5.rs"
