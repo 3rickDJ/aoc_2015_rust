@@ -4,7 +4,7 @@ use std::time::Instant;
 fn main() {
   let input = fs::read_to_string("input/2022/5").unwrap();
   let start = Instant::now();
-  let supply = SupplyStack::new(input.as_str());
+  let supply = SupplyStack::new(input.as_str(), true);
   let tops = supply.tops();
   println!("Tops: {tops:?}");
   println!("Elapsed time: {:.2?}", start.elapsed());
@@ -33,7 +33,7 @@ impl Movement {
 }
 
 impl SupplyStack {
-  pub fn new(input: &str) -> Self {
+  pub fn new(input: &str, multiple: bool) -> Self {
     let (grid, movements) = input.split_once("\n\n").unwrap();
     // drop last line
     let mut lines = grid.lines().collect::<Vec<&str>>();
@@ -54,7 +54,7 @@ impl SupplyStack {
     }
     let movements = movements.lines().map(|line| Movement::new(line)).collect::<Vec<Movement>>();
     for movement in movements {
-      Self::move_stack(&mut stacks, movement);
+      Self::move_stack(&mut stacks, movement, multiple);
     }
 
     Self {
@@ -62,10 +62,19 @@ impl SupplyStack {
     }
   }
 
-  fn move_stack(stacks: &mut Vec<Vec<char>>, movement: Movement) {
-    for _ in 0..movement.qty {
-      let val = stacks[movement.from - 1].pop().unwrap();
-      stacks[movement.to - 1].push(val);
+  fn move_stack(stacks: &mut Vec<Vec<char>>, movement: Movement, multiple: bool) {
+    match multiple {
+      false => {
+        for _ in 0..movement.qty {
+          let val = stacks[movement.from - 1].pop().unwrap();
+          stacks[movement.to - 1].push(val);
+        }
+      },
+      true => {
+        let from: &mut Vec<char> = &mut stacks[movement.from - 1];
+        let tail: Vec<char> = from.split_off(from.len() - movement.qty as usize);
+        stacks[movement.to - 1].extend(tail);
+      }
     }
   }
 
@@ -87,7 +96,7 @@ mod test {
   use indoc::indoc;
 
   #[test]
-  fn test_parse_grid_to_stacks(){
+  fn test_move_stacks(){
     let input = indoc!{"
         [D]    
     [N] [C]    
@@ -100,7 +109,7 @@ mod test {
     move 1 from 1 to 2"
     };
 
-    let supply = SupplyStack::new(input);
+    let supply = SupplyStack::new(input, false);
     let stacks = &supply.stacks;
     let expected = vec![
       vec!['C'],
@@ -112,6 +121,26 @@ mod test {
 
     let top = supply.tops();
     assert_eq!(top, "CMZ".to_string());
+
+  }
+
+  #[test]
+  fn test_move_multiple_stacks(){
+    let input = indoc!{"
+        [D]    
+    [N] [C]    
+    [Z] [M] [P]
+     1   2   3 
+    
+    move 1 from 2 to 1
+    move 3 from 1 to 3
+    move 2 from 2 to 1
+    move 1 from 1 to 2"
+    };
+
+    let supply = SupplyStack::new(input, true);
+    let top = supply.tops();
+    assert_eq!(top, "MCD".to_string());
 
   }
 }
