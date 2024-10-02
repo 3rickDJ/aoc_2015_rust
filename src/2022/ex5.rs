@@ -72,8 +72,8 @@ impl SupplyStack {
       },
       true => {
         let from: &mut Vec<char> = &mut stacks[movement.from - 1];
-        let tail: Vec<char> = from.split_off(from.len() - movement.qty as usize);
-        stacks[movement.to - 1].extend(tail);
+        let mut tail  = from.split_off(from.len() - movement.qty as usize);
+        stacks[movement.to - 1].append(&mut tail);
       }
     }
   }
